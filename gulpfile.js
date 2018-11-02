@@ -10,7 +10,8 @@ var gulp          = require('gulp'),
 		rename        = require('gulp-rename'),
 		autoprefixer  = require('gulp-autoprefixer'),
 		notify        = require("gulp-notify"),
-		rsync         = require('gulp-rsync');
+        rsync         = require('gulp-rsync'),
+        npmDist       = require('gulp-npm-dist');
 
 gulp.task('browser-sync', function() {
 	browserSync({
@@ -60,10 +61,18 @@ gulp.task('rsync', function() {
 	}))
 });
 
+gulp.task('copy:libs', function() {
+    gulp.src(npmDist(), {base:'./node_modules/'})
+        .pipe(rename(function(path) {
+            path.dirname = path.dirname.replace(/\/dist/, '').replace(/\\dist/, '');
+        }))
+        .pipe(gulp.dest('app/libs'));
+});
+
 gulp.task('watch', ['styles', 'js', 'browser-sync'], function() {
 	gulp.watch('app/'+syntax+'/**/*.'+syntax+'', ['styles']);
 	gulp.watch(['libs/**/*.js', 'app/js/common.js'], ['js']);
 	gulp.watch('app/*.html', browserSync.reload)
 });
 
-gulp.task('default', ['watch']);
+gulp.task('default', ['copy:libs', 'watch']);
